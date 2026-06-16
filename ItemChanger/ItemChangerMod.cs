@@ -1,6 +1,8 @@
 ﻿using ItemChanger.Internal;
 using ItemChanger.Util;
 using Modding;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace ItemChanger
 {
@@ -10,6 +12,7 @@ namespace ItemChanger
         internal static Settings SET;
         internal static GlobalSettings GS = new();
         private bool _hooked = false;
+        private bool _newFile = false;
 
         public ItemChangerMod()
         {
@@ -24,6 +27,13 @@ namespace ItemChanger
         {
             ObjectCache.Setup(preloadedObjects);
             MessageController.Setup();
+            
+            On.UnityEngine.UI.SaveSlotButton.OnPointerClick += ClickSaveSlot;
+        }
+
+        private void ClickSaveSlot(On.UnityEngine.UI.SaveSlotButton.orig_OnPointerClick orig, SaveSlotButton self, PointerEventData eventData) {
+            _newFile = self.state == SaveSlotButton.SlotState.EMPTY_SLOT;
+            orig(self, eventData);
         }
 
         internal void HookItemChanger()
@@ -238,7 +248,7 @@ namespace ItemChanger
                 }
             }
 
-            SET = s;
+            SET = _newFile ? null : s;
             if (SET == null && _hooked)
             {
                 UnhookItemChanger();
